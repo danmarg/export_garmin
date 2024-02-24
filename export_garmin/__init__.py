@@ -84,27 +84,28 @@ def init_api(email, password):
     return garmin
 
 
-# Initialize everything
-api = init_api(email, password)
-latest = datetime.min.strftime("%Y-%m-%d")
-if os.path.exists(exportpath):
-    exports = sorted(
-        [d for d in os.listdir(exportpath) if re.match(r"\d{4}-\d{2}-\d{2}", d)]
-    )
-    if exports:
-        latest = exports[-1]
-
-# Get last exported activity day. Worst case, we overwrite a couple of activities.
-startdate = latest + "T00:00:00.000000"
-enddate = datetime.now().isoformat()
-print(f"Fetching activities from {latest}...")
-activities = api.get_activities_by_date(startdate, enddate)
-for activity in activities:
-    outdir = os.path.join(exportpath, activity["startTimeGMT"][:10])
-    print(f"Downloading {activity['startTimeGMT'][:10]}...")
-    if not os.path.exists(outdir):
-        os.mkdir(outdir)
-    outfile = os.path.join(outdir, str(activity["activityId"])) + ".tsx"
-    raw = api.download_activity(activity["activityId"])
-    with open(outfile, "wb") as out:
-        out.write(raw)
+def main():
+    # Initialize everything
+    api = init_api(email, password)
+    latest = datetime.min.strftime("%Y-%m-%d")
+    if os.path.exists(exportpath):
+        exports = sorted(
+            [d for d in os.listdir(exportpath) if re.match(r"\d{4}-\d{2}-\d{2}", d)]
+        )
+        if exports:
+            latest = exports[-1]
+    
+    # Get last exported activity day. Worst case, we overwrite a couple of activities.
+    startdate = latest + "T00:00:00.000000"
+    enddate = datetime.now().isoformat()
+    print(f"Fetching activities from {latest}...")
+    activities = api.get_activities_by_date(startdate, enddate)
+    for activity in activities:
+        outdir = os.path.join(exportpath, activity["startTimeGMT"][:10])
+        print(f"Downloading {activity['startTimeGMT'][:10]}...")
+        if not os.path.exists(outdir):
+            os.mkdir(outdir)
+        outfile = os.path.join(outdir, str(activity["activityId"])) + ".tsx"
+        raw = api.download_activity(activity["activityId"])
+        with open(outfile, "wb") as out:
+            out.write(raw)
